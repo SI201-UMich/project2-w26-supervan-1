@@ -44,8 +44,8 @@ def load_listing_results(html_path) -> list[tuple]:
     results = []
 
     with open(html_path, "r", encoding="utf-8") as f:
-        soup = BeautifulSoup(f, "html.parser")
-        
+        soup = BeautifulSoup(f, "html_files")
+
     links = soup.find_all("a", href=True)
 
     seen_ids = set()
@@ -103,7 +103,54 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    data = load_listing_results(listing_id)
+
+    def policy_number(text):
+        if not text or text.strip() == "":
+            return "Pending"
+        text_lower = text.lower()
+        if "pending" in text_lower:
+            return "Pending"
+        if "exempt" in text_lower:
+            return "Exempt"
+        return text.strip()
+
+    def host_type(text):
+        return "Superhost" if "superhost" in text.lower() else "regular"
+
+    def host_name(text):
+        return text.strip()
+
+    def room_type(subtitle):
+        subtitle_lower = subtitle.lower()
+        if "private" in subtitle_lower:
+            return "Private Room"
+        elif "shared" in subtitle_lower:
+            return "Shared Room"
+        else:
+            return "Entire Room"
+
+    def location_rating(ratings_section):
+        try:
+            return float(ratings_section.get("location", 0.0))
+        except (ValueError, TypeError):
+            return 0.0
+
+    host_info = load_listing_results.get("host_info", {})
+    ratings = load_listing_results.get("ratings", {})
+    subtitle = load_listing_results.get("subtitle", "")
+
+    result = {
+        listing_id: {
+            "policy_number": policy_number(host_info.get("policy_number")),
+            "host_type": host_type(host_info.get("badges", "")),
+            "host_name": host_name(host_info.get("name", "")),
+            "room_type": room_type(subtitle),
+            "location_rating": location_rating(ratings),
+        }
+    }
+
+    return result
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
