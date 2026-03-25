@@ -44,7 +44,7 @@ def load_listing_results(html_path) -> list[tuple]:
     results = []
 
     with open(html_path, "r", encoding="utf-8") as f:
-        soup = BeautifulSoup(f, "html_files")
+        soup = BeautifulSoup(f, "html.parser")
 
     links = soup.find_all("a", href=True)
 
@@ -103,7 +103,8 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    file_path = f'listing_{listing_id}.html'
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    file_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
     with open(file_path, "r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
 
