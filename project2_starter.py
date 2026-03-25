@@ -103,9 +103,30 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    data = load_listing_results(listing_id)
+    file_path = f'listing_{listing_id}.html'
+    with open(file_path, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f, "html.parser")
 
-    def policy_number(text):
+    host_name_tag = soup.find("div", {"class": "host-name"})
+    host_name = host_name_tag.get_text(strip=True) if host_name_tag else ""
+
+    badge_tag = soup.find("div", {"class": "host-badge"})
+    badge_text = badge_tag.get_text(strip=True) if badge_tag else ""
+    
+    policy_tag = soup.find(string=re.compile("Policy"))
+    policy_text = policy_tag.strip() if policy_tag else ""
+
+    subtitle_tag = soup.find("div", {"class": "subtitle"})
+    subtitle = subtitle_tag.get_text(strip=True) if subtitle_tag else ""
+
+    location_rating = 0.0
+    rating_tag = soup.find(string=re.compile("Location"))
+    if rating_tag:
+        match = re.search(r"(\d+\.\d+)", rating_tag)
+        if match:
+            location_rating = float(match.group(1))
+
+    def clean_policy(text):
         if not text or text.strip() == "":
             return "Pending"
         text_lower = text.lower()
@@ -115,38 +136,26 @@ def get_listing_details(listing_id) -> dict:
             return "Exempt"
         return text.strip()
 
-    def host_type(text):
+    def get_host_type(text):
         return "Superhost" if "superhost" in text.lower() else "regular"
 
-    def host_name(text):
-        return text.strip()
-
-    def room_type(subtitle):
-        subtitle_lower = subtitle.lower()
-        if "private" in subtitle_lower:
+    def get_room_type(text):
+        text_lower = text.lower()
+        if "private" in text_lower:
             return "Private Room"
-        elif "shared" in subtitle_lower:
+        elif "shared" in text_lower:
             return "Shared Room"
         else:
             return "Entire Room"
-
-    def location_rating(ratings_section):
-        try:
-            return float(ratings_section.get("location", 0.0))
-        except (ValueError, TypeError):
-            return 0.0
-
-    host_info = load_listing_results.get("host_info", {})
-    ratings = load_listing_results.get("ratings", {})
-    subtitle = load_listing_results.get("subtitle", "")
+        
 
     result = {
         listing_id: {
-            "policy_number": policy_number(host_info.get("policy_number")),
-            "host_type": host_type(host_info.get("badges", "")),
-            "host_name": host_name(host_info.get("name", "")),
-            "room_type": room_type(subtitle),
-            "location_rating": location_rating(ratings),
+            "policy_number": clean_policy(policy_text),
+            "host_type": get_host_type(badge_text),
+            "host_name": host_name,
+            "room_type": get_room_type(subtitle),
+            "location_rating": location_rating,
         }
     }
 
