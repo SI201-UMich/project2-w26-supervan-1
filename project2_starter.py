@@ -114,18 +114,29 @@ def get_listing_details(listing_id) -> dict:
     badge_tag = soup.find("div", {"class": "host-badge"})
     badge_text = badge_tag.get_text(strip=True) if badge_tag else ""
     
-    policy_tag = soup.find(string=re.compile("Policy"))
-    policy_text = policy_tag.strip() if policy_tag else ""
+    policy_number = "Pending"
+    policy_tag = soup.find(string=re.compile("Policy number"))
+    if policy_tag:
+        policy_text = policy_tag.parent.get_text('', strip=True)
+
+        match = re.search(r'(STR-\d+|Pending|Exempt)', policy_text, re.IGNORECASE)
+        if match:
+            policy_number = match.group(1)
 
     subtitle_tag = soup.find("div", {"class": "subtitle"})
     subtitle = subtitle_tag.get_text(strip=True) if subtitle_tag else ""
 
+    #location_rating = 0.0
+    #rating_tag = soup.find(string=re.compile("Location"))
+    #if rating_tag:
+        #match = re.search(r"(\d+\.\d+)", rating_tag)
+        #if match:
+            #location_rating = float(match.group(1))
+    
     location_rating = 0.0
-    rating_tag = soup.find(string=re.compile("Location"))
-    if rating_tag:
-        match = re.search(r"(\d+\.\d+)", rating_tag)
-        if match:
-            location_rating = float(match.group(1))
+    matches = re.findall(r"(\d\.\d)", soup.get_text())
+    if matches:
+        location_rating = float(matches[-1])
 
     def clean_policy(text):
         if not text or text.strip() == "":
@@ -137,8 +148,8 @@ def get_listing_details(listing_id) -> dict:
             return "Exempt"
         return text.strip()
 
-    def get_host_type(text):
-        return "Superhost" if "superhost" in text.lower() else "regular"
+    def get_host_type(soup):
+        return "Superhost" if soup.find(string=re.compile("Superhost", re.IGNORECASE)) else "regular"
 
     def get_room_type(text):
         text_lower = text.lower()
@@ -152,8 +163,8 @@ def get_listing_details(listing_id) -> dict:
 
     result = {
         listing_id: {
-            "policy_number": clean_policy(policy_text),
-            "host_type": get_host_type(badge_text),
+            "policy_number": clean_policy(policy_number),
+            "host_type": get_host_type(soup),
             "host_name": host_name,
             "room_type": get_room_type(subtitle),
             "location_rating": location_rating,
