@@ -41,6 +41,7 @@ def load_listing_results(html_path) -> list[tuple]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
+
     results = []
 
     with open(html_path, "r", encoding="utf-8") as f:
@@ -126,12 +127,6 @@ def get_listing_details(listing_id) -> dict:
     subtitle_tag = soup.find("div", {"class": "subtitle"})
     subtitle = subtitle_tag.get_text(strip=True) if subtitle_tag else ""
 
-    #location_rating = 0.0
-    #rating_tag = soup.find(string=re.compile("Location"))
-    #if rating_tag:
-        #match = re.search(r"(\d+\.\d+)", rating_tag)
-        #if match:
-            #location_rating = float(match.group(1))
     
     location_rating = 0.0
     matches = re.findall(r"(\d\.\d)", soup.get_text())
