@@ -1,7 +1,7 @@
 # SI 201 HW4 (Library Checkout System)
-# Your name: Neveah Stevenson
-# Your student id: 16185138
-# Your email: neveahst@umich.edu
+# Your name: Neveah Stevenson, Amelia Nelson
+# Your student id: 16185138, 87333562
+# Your email: neveahst@umich.edu, ameliane@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
 # e.g.:
@@ -240,7 +240,20 @@ def avg_location_rating_by_room_type(data) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    room_ratings= {}
+    for row in data:
+        room_type= row[5]
+        rating=row[6]
+        if rating ==0.0:
+            continue
+        if room_type not in room_ratings:
+            room_ratings[room_type]= []
+        room_ratings[room_type].append(rating)
+    averages= {}
+    for room_type in room_ratings:
+        ratings= room_ratings[room_type]
+        averages[room_type]= sum(ratings)/len(ratings)
+    return averages
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -261,7 +274,17 @@ def validate_policy_numbers(data) -> list[str]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    nomatch=[]
+    match1= r'20\d{2}-00\d{4}STR'
+    match2=r'STR-000\d{4}'
+    for row in data:
+        listing_id= row[1]
+        policy_number= row[2]
+        if policy_number == 'Pending' or policy_number== 'Exempt':
+            continue
+        if not (re.fullmatch(match1,policy_number) or re.fullmatch(match2, policy_number)):
+            nomatch.append(listing_id)
+    return nomatch
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -340,12 +363,14 @@ class TestCases(unittest.TestCase):
     def test_avg_location_rating_by_room_type(self):
         # TODO: Call avg_location_rating_by_room_type() and save the output.
         # TODO: Check that the average for "Private Room" is 4.9.
-        pass
+        results= avg_location_rating_by_room_type(self.detailed_data)
+        self.assertAlmostEqual(results.get('Private Room'), 4.9, places=1)
 
     def test_validate_policy_numbers(self):
         # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
         # TODO: Check that the list contains exactly "16204265" for this dataset.
-        pass
+        invalid_listings =validate_policy_numbers(self.detailed_data)
+        self.assertEqual(invalid_listings, ["16204265"])
 
 
 def main():
