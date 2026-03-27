@@ -214,7 +214,7 @@ def create_listing_database(html_path) -> list[tuple]:
 
 
     
-    pass
+    
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -237,7 +237,22 @@ def output_csv(data, filename) -> None:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    sorted_tuples = sorted(data, key=lambda x: x[6], reverse=True)
+    with open(filename, 'w', newline = ' ') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        headers = [
+            'Listing Titles',
+            'Listing ID'
+            'Policy Number'
+            'Host Type'
+            'Host Name'
+            'Room Type'
+            'Location Rating'
+        ]
+        csv_writer.writerow(headers)
+        csv_writer.writerows(sorted_tuples)
+
+   
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
