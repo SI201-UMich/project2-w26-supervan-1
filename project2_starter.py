@@ -46,41 +46,20 @@ def load_listing_results(html_path) -> list[tuple]:
 # eventually you'll hit a 'div' tag with class_ = 't1jojoys dir dir-ltr'
 # using .get_text() you will be able to get the listing_title
 # the listing id can be found with a regex pattern inside the 'id=listing_id'
+    listings = []
 
-    import re
-from bs4 import BeautifulSoup
+    with open(html_path, 'r', encoding='utf-8') as f:
+        soup = BeautifulSoup(f, 'html.parser')
 
-def load_listing_results(html_path) -> list[tuple]:
-    results = []
+    for a_tag in soup.find_all('a', href=True):
+        match = re.search(r'/rooms/(\d+)', a_tag['href'])
+        if match:
+            listing_id = match.group(1)
+            title_div = a_tag.find('div')
+            title = title_div.get_text(strip=True) if title_div else "Unknown title"
+            listings.append((title, listing_id))
 
-    with open(html_path, "r", encoding="utf-8") as f:
-        soup = BeautifulSoup(f.read(), "html.parser")
-
-    seen_ids = set()
-
-    title_divs = soup.find_all("div", class_="t1jojoys dir dir-ltr")
-
-    for div in title_divs:
-        title = div.get_text(strip=True)
-
-        container_html = str(div.parent)
-
-        match = re.search(r"/rooms/(\d+)", container_html)
-        if not match:
-            continue
-
-        listing_id = match.group(1)
-
-        if listing_id in seen_ids:
-            continue
-        seen_ids.add(listing_id)
-
-        if not title:
-            title = "Unknown Title"
-
-        results.append((title, listing_id))
-
-    return results
+    return listings
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
