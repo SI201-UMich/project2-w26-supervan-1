@@ -1,7 +1,7 @@
 # SI 201 HW4 (Library Checkout System)
-# Your name: Neveah Stevenson, Amelia Nelson
-# Your student id: 16185138, 87333562
-# Your email: neveahst@umich.edu, ameliane@umich.edu
+# Your name: Neveah Stevenson, Amelia Nelson, Vanessa Amevor
+# Your student id: 16185138, 87333562, 91481036
+# Your email: neveahst@umich.edu, ameliane@umich.edu, vamevor@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
 # e.g.:
@@ -41,13 +41,18 @@ def load_listing_results(html_path) -> list[tuple]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
+    # Don't need to find link
+# look for 'div' tags and move in
+# eventually you'll hit a 'div' tag with class_ = 't1jojoys dir dir-ltr'
+# using .get_text() you will be able to get the listing_title
+# the listing id can be found with a regex pattern inside the 'id=listing_id'
 
     results = []
 
     with open(html_path, "r", encoding="utf-8") as f:
-        soup = BeautifulSoup(f, "html.parser")
+        html_content = f.read()
+    soup = BeautifulSoup(html_content, "html.parser")
     
-   
     seen_ids = set()
     
     links = soup.find_all('a', href=True)
