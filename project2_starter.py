@@ -243,7 +243,7 @@ def output_csv(data, filename) -> None:
     # YOUR CODE STARTS HERE
     # ==============================
     sorted_tuples = sorted(data, key=lambda x: x[6], reverse=True)
-    with open(filename, 'w', newline = ' ') as csv_file:
+    with open(filename, 'w', newline = '') as csv_file:
         csv_writer = csv.writer(csv_file)
         headers = [
             'Listing Titles',
@@ -387,16 +387,25 @@ class TestCases(unittest.TestCase):
     def test_create_listing_database(self):
         # TODO: Check that each tuple in detailed_data has exactly 7 elements:
         # (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
+        self.assertEqual(len(self.detailed_data), 7)
 
         # TODO: Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
-        pass
+        self.assertEqual(self.detailed_data[-1], ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8))
+       
 
     def test_output_csv(self):
         out_path = os.path.join(self.base_dir, "test.csv")
 
         # TODO: Call output_csv() to write the detailed_data to a CSV file.
+        output_csv(self.detailed_data)
         # TODO: Read the CSV back in and store rows in a list.
+        row_list = []
+        with open(output_csv, 'r', newline='') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                row_list.append(row)
         # TODO: Check that the first data row matches ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"].
+        self.assertEqual(row_list[1], ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"])
 
         os.remove(out_path)
 
