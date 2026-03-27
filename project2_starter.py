@@ -46,11 +46,11 @@ def load_listing_results(html_path) -> list[tuple]:
 
     with open(html_path, "r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
-
-    links = soup.find_all("a rel", href=True)
-
+    
+   
     seen_ids = set()
-
+    
+    links = soup.find_all('a', href=True)
     for link in links:
         href = link["href"]
 
@@ -64,8 +64,15 @@ def load_listing_results(html_path) -> list[tuple]:
         if listing_id in seen_ids:
             continue
         seen_ids.add(listing_id)
-
+        
         title = link.get("aria-label")
+
+        if not title:
+            labelledby = link.get("aria-labelledby")
+            if labelledby:
+                title_tag = soup.find(id=labelledby)
+                if title_tag:
+                    title = title_tag.get_text(strip=True)
 
         if not title:
             title = link.get_text(strip=True)
@@ -75,7 +82,6 @@ def load_listing_results(html_path) -> list[tuple]:
         
 
         results.append((title, listing_id))
-    
     return results
     # ==============================
     # YOUR CODE ENDS HERE
