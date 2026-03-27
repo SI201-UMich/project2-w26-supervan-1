@@ -47,7 +47,7 @@ def load_listing_results(html_path) -> list[tuple]:
     with open(html_path, "r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
 
-    links = soup.find_all("a", href=True)
+    links = soup.find_all("a rel", href=True)
 
     seen_ids = set()
 
@@ -72,9 +72,10 @@ def load_listing_results(html_path) -> list[tuple]:
 
         if not title:
             title = "Unknown Title"
+        
 
         results.append((title, listing_id))
-
+    
     return results
     # ==============================
     # YOUR CODE ENDS HERE
