@@ -46,20 +46,22 @@ def load_listing_results(html_path) -> list[tuple]:
 # eventually you'll hit a 'div' tag with class_ = 't1jojoys dir dir-ltr'
 # using .get_text() you will be able to get the listing_title
 # the listing id can be found with a regex pattern inside the 'id=listing_id'
+  
     listings = []
 
     with open(html_path, 'r', encoding='utf-8') as f:
-        soup = BeautifulSoup(f, 'html.parser')
+        file = f.read()
+        soup = BeautifulSoup(file, 'html.parser')
 
-    for a_tag in soup.find_all('a', href=True):
-        match = re.search(r'/rooms/(\d+)', a_tag['href'])
-        if match:
-            listing_id = match.group(1)
-            title_div = a_tag.find('div')
-            title = title_div.get_text(strip=True) if title_div else "Unknown title"
-            listings.append((title, listing_id))
+        lists = soup.find_all('div', class_='c1l1h97y')
 
-    return listings
+        for l in lists:
+            title = l.find('div', class_='t1jojoys').text
+            id = re.findall(r'\/(\d+)\?', l.find('a').get('href'))[0]
+            listings.append((title,id))
+
+        return listings
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -174,7 +176,7 @@ def create_listing_database(html_path) -> list[tuple]:
     tup_list = []
     listing_results_tup = load_listing_results(html_path)
     for listing_title, listing_id in listing_results_tup:
-        listing_details = get_listing_details(listing_id)
+        listing_details = get_listing_details(listing_id)[listing_id]
         tup_list.append(
             (
                 listing_title, 
@@ -215,15 +217,15 @@ def output_csv(data, filename) -> None:
     # YOUR CODE STARTS HERE
     # ==============================
     sorted_tuples = sorted(data, key=lambda x: x[6], reverse=True)
-    with open(filename, 'w', newline = '') as csv_file:
+    with open(filename, 'w', newline = '', encoding='utf-8-sig') as csv_file:
         csv_writer = csv.writer(csv_file)
         headers = [
             'Listing Titles',
-            'Listing ID'
-            'Policy Number'
-            'Host Type'
-            'Host Name'
-            'Room Type'
+            'Listing ID',
+            'Policy Number',
+            'Host Type',
+            'Host Name',
+            'Room Type',
             'Location Rating'
         ]
         csv_writer.writerow(headers)
@@ -400,5 +402,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     unittest.main(verbosity=2)
+    main()
