@@ -90,69 +90,55 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
+    
     base_dir = os.path.abspath(os.path.dirname(__file__))
     file_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
+    
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File for listing {listing_id} not found")
+
     with open(file_path, "r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
 
-    host_name_tag = soup.find("div", {"class": "host-name"})
+    host_name_tag = soup.find("div", class_="host-name")
     host_name = host_name_tag.get_text(strip=True) if host_name_tag else ""
 
-    badge_tag = soup.find("div", {"class": "host-badge"})
-    badge_text = badge_tag.get_text(strip=True) if badge_tag else ""
-    
+    host_type = "Superhost" if soup.find(string=re.compile("Superhost", re.IGNORECASE)) else "regular"
+
+    subtitle_tag = soup.find("div", class_="subtitle")
+    subtitle = subtitle_tag.get_text(strip=True) if subtitle_tag else ""
+    subtitle_lower = subtitle.lower()
+    if "private" in subtitle_lower:
+        room_type = "Private Room"
+    elif "shared" in subtitle_lower:
+        room_type = "Shared Room"
+    else:
+        room_type = "Entire Room"
+
     policy_number = "Pending"
-    policy_tag = soup.find(string=re.compile("Policy number"))
+    policy_tag = soup.find(string=re.compile("Policy number", re.IGNORECASE))
     if policy_tag:
         policy_text = policy_tag.parent.get_text('', strip=True)
-
         match = re.search(r'(STR-\d+|Pending|Exempt)', policy_text, re.IGNORECASE)
         if match:
             policy_number = match.group(1)
-
-    subtitle_tag = soup.find("div", {"class": "subtitle"})
-    subtitle = subtitle_tag.get_text(strip=True) if subtitle_tag else ""
+    policy_number = policy_number if policy_number else "Pending"
 
     
     location_rating = 0.0
-    matches = re.findall(r"(\d\.\d)", soup.get_text())
-    if matches:
-        location_rating = float(matches[-1])
+    rating_matches = re.findall(r"(\d\.\d)", soup.get_text())
+    if rating_matches:
+        location_rating = float(rating_matches[-1])
 
-    def clean_policy(text):
-        if not text or text.strip() == "":
-            return "Pending"
-        text_lower = text.lower()
-        if "pending" in text_lower:
-            return "Pending"
-        if "exempt" in text_lower:
-            return "Exempt"
-        return text.strip()
-
-    def get_host_type(soup):
-        return "Superhost" if soup.find(string=re.compile("Superhost", re.IGNORECASE)) else "regular"
-
-    def get_room_type(text):
-        text_lower = text.lower()
-        if "private" in text_lower:
-            return "Private Room"
-        elif "shared" in text_lower:
-            return "Shared Room"
-        else:
-            return "Entire Room"
-        
-
-    result = {
+    return {
         listing_id: {
-            "policy_number": clean_policy(policy_number),
-            "host_type": get_host_type(soup),
+            "policy_number": policy_number,
+            "host_type": host_type,
             "host_name": host_name,
-            "room_type": get_room_type(subtitle),
+            "room_type": room_type,
             "location_rating": location_rating,
         }
     }
-
-    return result
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -175,9 +161,11 @@ def create_listing_database(html_path) -> list[tuple]:
     # ==============================
     tup_list = []
     listing_results_tup = load_listing_results(html_path)
+    
     for listing_title, listing_id in listing_results_tup:
-        listing_details = get_listing_details(listing_id)[listing_id]
-        tup_list.append(
+        try:
+            listing_details = get_listing_details(listing_id)[listing_id]
+            tup_list.append(
             (
                 listing_title, 
                 listing_id,
@@ -188,12 +176,10 @@ def create_listing_database(html_path) -> list[tuple]:
                 listing_details['location_rating']
             )
         )
+        except FileNotFoundError:
+            continue
     return tup_list
-    # for listing in listings:
 
-
-    
-    
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -371,10 +357,10 @@ class TestCases(unittest.TestCase):
         out_path = os.path.join(self.base_dir, "test.csv")
 
         # TODO: Call output_csv() to write the detailed_data to a CSV file.
-        output_csv(self.detailed_data)
+        output_csv(self.detailed_data, out_path)
         # TODO: Read the CSV back in and store rows in a list.
         row_list = []
-        with open(output_csv, 'r', newline='') as file:
+        with open(out_path, 'r', newline='', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
             for row in reader:
                 row_list.append(row)
@@ -386,8 +372,9 @@ class TestCases(unittest.TestCase):
     def test_avg_location_rating_by_room_type(self):
         # TODO: Call avg_location_rating_by_room_type() and save the output.
         # TODO: Check that the average for "Private Room" is 4.9.
-        results= avg_location_rating_by_room_type(self.detailed_data)
-        self.assertAlmostEqual(results.get('Private Room'), 4.9, places=1)
+        results = avg_location_rating_by_room_type(self.detailed_data)
+        rating = results.get('Private Room')
+        self.assertAlmostEqual(rating, 4.9, places=1)
 
     def test_validate_policy_numbers(self):
         # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
