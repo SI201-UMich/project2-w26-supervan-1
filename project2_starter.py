@@ -170,10 +170,10 @@ def create_listing_database(html_path) -> list[tuple]:
                 listing_title, 
                 listing_id,
                 listing_details['policy_number'],
-                listing_details['host_name'],
                 listing_details['host_type'],
+                listing_details['host_name'],
                 listing_details['room_type'],
-                listing_details['location_rating']
+                listing_details['location_rating'],
             )
         )
         except FileNotFoundError:
@@ -347,7 +347,8 @@ class TestCases(unittest.TestCase):
     def test_create_listing_database(self):
         # TODO: Check that each tuple in detailed_data has exactly 7 elements:
         # (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
-        self.assertEqual(len(self.detailed_data), 7)
+        for i in range(len(self.detailed_data)):
+            self.assertEqual(len(self.detailed_data[i]), 7)
 
         # TODO: Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
         self.assertEqual(self.detailed_data[-1], ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8))
